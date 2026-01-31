@@ -18,10 +18,13 @@ def detect_ai_voice(y, sr):
     mfcc_score = max(0.0, min(1.0, 1.0 - (mfcc_variance / 15000)))
     flatness_score = min(spectral_flatness, 1.0)
 
-    ai_likelihood = round(
+    ai_likelihood = float(
+    round(
         (mfcc_score * 0.7) + (flatness_score * 0.3),
         2
     )
+)
+
 
     if ai_likelihood == float(round(
             (mfcc_score * 0.7) + (flatness_score * 0.3),
