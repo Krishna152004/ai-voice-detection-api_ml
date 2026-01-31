@@ -23,12 +23,10 @@ def detect_ai_voice(y, sr):
         2
     )
 
-    if ai_likelihood > 0.6:
-        classification = "AI_GENERATED"
-        explanation = (
-            "Low spectral variance and consistent frequency patterns "
-            "indicate synthetic speech characteristics"
-        )
+    if ai_likelihood = float(round(
+            (mfcc_score * 0.7) + (flatness_score * 0.3),
+            2
+        ))
     else:
         classification = "HUMAN"
         explanation = (
