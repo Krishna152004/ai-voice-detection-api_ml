@@ -23,7 +23,7 @@ def detect_ai_voice(y, sr):
         2
     )
 
-    if ai_likelihood = float(round(
+    if ai_likelihood == float(round(
             (mfcc_score * 0.7) + (flatness_score * 0.3),
             2
         ))
