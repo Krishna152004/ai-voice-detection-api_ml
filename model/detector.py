@@ -1,41 +1,47 @@
+# utils/audio_utils.py
+
+import base64
+import io
+import logging
+from pydub import AudioSegment
 import librosa
 import numpy as np
 
-def detect_ai_voice(y, sr):
+def load_audio_from_base64(audio_base64: str):
+    
+    try:
+        # 1️⃣ Decode Base64 → bytes
+        audio_bytes = base64.b64decode(audio_base64)
 
-    if len(y) < sr:
-        return (
-            "HUMAN",
-            0.0,
-            "Audio too short for reliable analysis"
+        if not audio_bytes:
+            raise ValueError("Decoded audio is empty")
+
+        # 2️⃣ Read MP3 bytes
+        audio = AudioSegment.from_file(
+            io.BytesIO(audio_bytes),
+            format="mp3"
         )
 
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    mfcc_variance = np.var(mfcc)
+        # Validate audio duration (prevent extremely short or empty clips)
+        if len(audio) < 500:  # Less than 500ms
+            logging.warning("Audio clip is very short (<500ms), analysis may be unreliable")
 
-    spectral_flatness = np.mean(
-        librosa.feature.spectral_flatness(y=y)
-    )
+        # 3️⃣ Convert to WAV in memory
+        wav_io = io.BytesIO()
+        audio.export(wav_io, format="wav")
+        wav_io.seek(0)
 
-    mfcc_score = max(0.0, min(1.0, 1.0 - (mfcc_variance / 15000)))
-    flatness_score = min(spectral_flatness, 1.0)
+        # 4️⃣ Load waveform with consistent sample rate
+        y, sr = librosa.load(wav_io, sr=22050)  # Using fixed sample rate for consistency
 
-    ai_likelihood = round(
-        (mfcc_score * 0.7) + (flatness_score * 0.3),
-        2
-    )
+        # Ensure minimum length for analysis
+        if len(y) < sr * 0.5:  # Less than 0.5 seconds
+            # Pad short samples to ensure sufficient data for analysis
+            y = np.pad(y, (0, int(sr * 0.5) - len(y)))
+            logging.warning("Audio padded to minimum length for analysis")
 
-    if ai_likelihood >= 0.5:
-        classification = "AI"
-        explanation = (
-            "Low MFCC variance and high spectral flatness "
-            "suggest synthesized speech"
-        )
-    else:
-        classification = "HUMAN"
-        explanation = (
-            "Higher spectral variance and natural frequency fluctuations "
-            "indicate human speech"
-        )
-
-    return classification, ai_likelihood, explanation
+        return y, sr
+        
+    except Exception as e:
+        logging.error(f"Error processing audio: {str(e)}")
+        raise ValueError(f"Failed to process audio: {str(e)}")
