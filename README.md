@@ -1,75 +1,83 @@
-🎙️ AI-Generated Voice Detection – API Service
 
-A lightweight API-based voice analysis system built using FastAPI, designed to detect whether a given voice sample is AI-generated or human-generated using machine-learning–based acoustic analysis.
+---
 
-✅ Features
+# AI-Generated Voice Detection API
 
-REST API for AI vs Human voice classification
+## Overview
 
-Accepts Base64-encoded MP3 audio
+The **AI-Generated Voice Detection API** is a RESTful service that determines whether a given voice sample is **AI-generated** or **human-generated**.
+The service supports **Tamil, English, Hindi, Malayalam, and Telugu** voice samples.
 
-Supports multiple languages:
+The API is designed to be **stable, low-latency, and evaluation-ready**, following GUVI hackathon submission requirements.
 
-Tamil
+---
 
-English
+## Base URL
 
-Hindi
+```
+https://<your-railway-app-url>
+```
 
-Malayalam
+---
 
-Telugu
+## Authentication
 
-ML-based prediction with confidence score
+All requests require an API key.
 
-Human-readable explanation for each decision
+### Header
 
-Stable, deterministic, and evaluation-ready API
+```
+x-api-key: sk_test_123456789
+```
 
-📄 API Overview
-Endpoint	Description
-/api/voice-detection	Classifies voice input as AI-generated or human-generated
-🧠 Detection Approach
+> **Note:** This is a test-only API key.
 
-Machine-learning–based classification
+---
 
-Audio features extracted using librosa
+## Endpoint
 
-Feature set includes:
+### POST `/api/voice-detection`
 
-MFCC statistical features
+Classifies a voice sample as **AI-generated** or **Human-generated**.
 
-Spectral contrast characteristics
+---
 
-Pitch variability
+## Request
 
-Zero-crossing rate
+### Headers
 
-Language-aware normalization applied for Indian languages
+```
+Content-Type: application/json
+x-api-key: sk_test_123456789
+```
 
-A pre-trained RandomForest classifier is used for inference
+### Body Parameters
 
-Model is trained offline and loaded at runtime for fast predictions
+| Field         | Type   | Required | Description                                  |
+| ------------- | ------ | -------- | -------------------------------------------- |
+| `language`    | string | Yes      | Tamil / English / Hindi / Malayalam / Telugu |
+| `audioFormat` | string | Yes      | Must be `mp3`                                |
+| `audioBase64` | string | Yes      | Base64-encoded MP3 audio                     |
 
-⚠️ Training data is intentionally excluded from this repository.
+### Example Request
 
-📥 Input
-
-Audio format: MP3
-
-Encoding: Base64
-
-Language metadata: Required in request body
-
-Example Request
+```json
 {
   "language": "Tamil",
   "audioFormat": "mp3",
-  "audioBase64": "<BASE64_ENCODED_AUDIO>"
+  "audioBase64": "<BASE64_AUDIO_STRING>"
 }
+```
 
-📤 Output
-Example Response
+---
+
+## Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
 {
   "status": "success",
   "language": "Tamil",
@@ -78,63 +86,118 @@ Example Response
   "confidenceScore": 0.94,
   "explanation": "Natural voice variations observed"
 }
+```
 
-Output Fields
-Field	Description
-classification	AI_GENERATED or HUMAN
-confidence	Model confidence score (0.0 – 1.0)
-explanation	Reasoning behind the prediction
-🔐 Authentication
+### Response Fields
 
-All API requests require an API key passed via headers:
+| Field             | Type   | Description                  |
+| ----------------- | ------ | ---------------------------- |
+| `status`          | string | Request status               |
+| `language`        | string | Language provided in request |
+| `classification`  | string | `AI_GENERATED` or `HUMAN`    |
+| `confidence`      | number | Confidence score (0.0 – 1.0) |
+| `confidenceScore` | number | Same as confidence           |
+| `explanation`     | string | Reason for classification    |
 
-x-api-key: sk_test_123456789
+---
 
-🧪 Local Execution
+## Error Responses
 
-Start the API server:
+### Unauthorized
 
+**Status Code:** `401`
+
+```json
+{
+  "detail": "Invalid API key"
+}
+```
+
+### Invalid Input
+
+**Status Code:** `400`
+
+```json
+{
+  "detail": "Only mp3 format is supported"
+}
+```
+
+---
+
+## Detection Methodology
+
+* Audio features extracted using **librosa**
+* Features include:
+
+  * MFCC statistics
+  * Spectral contrast
+  * Pitch variability
+  * Zero-crossing rate
+* Language-aware normalization applied
+* Classification performed using a **pre-trained RandomForest model**
+* Model loaded at runtime for fast inference
+
+> Training audio data is intentionally excluded from this repository.
+
+---
+
+## Supported Languages
+
+* Tamil
+* English
+* Hindi
+* Malayalam
+* Telugu
+
+---
+
+## Local Development
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run Server
+
+```bash
 uvicorn app:app --reload
-
+```
 
 Server runs at:
 
+```
 http://127.0.0.1:8000
+```
 
-🧠 Model Details
+---
 
-Feature extraction: librosa, NumPy
+## Project Structure
 
-Classifier: RandomForest (scikit-learn)
+```
+ai-voice-detection-api/
+├── app.py
+├── model/
+│   ├── detector.py
+│   ├── feature_extractor.py
+│   └── artifacts/
+│       └── voice_classifier.pkl
+├── utils/
+│   └── audio_utils.py
+├── requirements.txt
+├── Procfile
+└── README.md
+```
 
-Model file:
+---
 
-model/artifacts/voice_classifier.pkl
+## Notes
 
+* Only **MP3** audio is supported
+* Audio must be **Base64-encoded**
+* Designed for **automated evaluation**
+* Single endpoint as required by GUVI
 
-Model is loaded once at startup for low-latency inference
-
-🧰 Tech Stack
-
-Language: Python
-
-Framework: FastAPI
-
-Audio Processing: librosa, NumPy
-
-Machine Learning: scikit-learn
-
-Authentication: API key via request headers
-
-🎯 Learning Outcomes
-
-Built an end-to-end ML-powered voice detection system
-
-Applied speech signal processing techniques for AI detection
-
-Implemented language-aware acoustic normalization
-
-Designed an explainable ML inference API
-
-Gained experience deploying evaluation-ready AI services
-
+---
