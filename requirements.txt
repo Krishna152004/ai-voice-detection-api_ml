@@ -1,7 +1,9 @@
 fastapi
 uvicorn
-pydantic
 librosa
 numpy
-pydub
+scikit-learn
+joblib
 soundfile
+audioread
+pydantic
